@@ -129,7 +129,7 @@ func s:filterNames(id, key) abort
     let items = copy(s:popup_text)
     call s:makeMenuName(items)
     call popup_settext(a:id, items)
-    echo s:filter_text
+    echo 'File: ' .. s:filter_text
 
     " Select the previously selected entry. If not present, select first entry
     let idx = index(s:popup_text, prevSelName)

@@ -66,9 +66,10 @@ up and down arrow keys to move the currently selected entry in the popup menu.
 
 In the popup menu, you can type a series of characters to narrow down the list
 of displayed file names. The characters entered so far are displayed in the
-command-line. You can press backspace to erase the previously entered set of
-characters. The popup menu displays all the file names containing the series
-of typed characters.
+command-line. You can press backspace to erase one character from the
+previously entered set of characters. The popup menu displays all the file
+names containing the series of typed characters. You can press <C-U> to erase
+filter text.
 
 You can close the popup menu by pressing the escape key or by pressing CTRL-C.
 
@@ -89,6 +90,8 @@ In the popup menu, the following keys can be used:
     <Enter>	- Open the selected file
     <Esc>	- Close the popup menu
     <CTRL-C>	- Close the popup menu
+    <BS>        - Erase one character from the filter text
+    <C-U>       - Erase the filter text
 
 Any other alphanumeric key will be used to narrow down the list of names
 displayed in the popup menu.
