@@ -1,0 +1,109 @@
+*fileselect.txt*	Plugin for selecting a file from the current directory
+
+Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
+For Vim version 8.2 and above
+Last change: Sep 11, 2020
+
+==============================================================================
+CONTENTS~
+
+1. Overview					|fileselect-overview|
+2. Installation					|fileselect-installation|
+3. Usage					|fileselect-usage|
+4. Configuration				|fileselect-configuration|
+
+==============================================================================
+
+1. Overview					*fileselect-overview*
+
+The File Selector plugin provides an easy method to select a file for editing
+from the current directory tree.
+
+This plugin needs Vim 8.2.1665 and above and will work on all the platforms
+where Vim is supported. This plugin will work in both terminal and GUI Vim.
+
+The Github repository for the File Selector plugin is available at:
+
+      https://github.com/yegappan/fileselect
+
+==============================================================================
+2. Installation					*fileselect-installation*
+
+To install this plugin from the fileselect.zip file, unzip the files to the
+~/.vim/pack/downloads/start/fileselect directory:
+>
+    $ mkdir -p ~/.vim/pack/downloads/start/fileselect
+    $ cd ~/.vim/pack/downloads/start/fileselect
+    $ unzip ~/Downloads/fileselect.zip
+<
+To install this plugin on Linux, MacOS and other Unix-like systems from
+Github:
+>
+    $ mkdir -p ~/.vim/pack/downloads/start
+    $ cd ~/.vim/pack/downloads/start
+    $ git clone https://github.com/yegappan/fileselect
+<
+To install this plugin on MS-Windows from Github:
+>
+    C:\> mkdir %HOMEPATH%\vimfiles\pack\downloads\start
+    C:\> cd %HOMEPATH%\vimfiles\pack\downloads\start
+    C:\> git clone https://github.com/yegappan/fileselect
+<
+To uninstall the plugin, remove the fileselect directory from the
+$HOME/.vim/pack/downloads/start directory.
+
+Refer to the Vim |packages| help topic for more information.
+
+==============================================================================
+3. Usage					*fileselect-usage* *:Fileselect*
+
+The command :Fileselect opens a popup menu with a list of file names in the
+current directory tree. When you press <Enter> on a file name, the file is
+opened. If the selected file is already opened in a window, then the cursor
+will move to that window.  If the file it not present in any of the windows,
+then the selected file will be opened in the current window.  You can use the
+up and down arrow keys to move the currently selected entry in the popup menu.
+
+In the popup menu, you can type a series of characters to narrow down the list
+of displayed file names. The characters entered so far are displayed in the
+command-line. You can press backspace to erase the previously entered set of
+characters. The popup menu displays all the file names containing the series
+of typed characters.
+
+You can close the popup menu by pressing the escape key or by pressing CTRL-C.
+
+In the popup menu, the complete directory path to a file is displayed in
+parenthesis after the file name. If this is too long, then the path is
+shortened and an abbreviated path is displayed.
+
+In the popup menu, the following keys can be used:
+
+    CTRL-F	- Scroll one page forward
+    <PageDown>	- Scroll one page forward
+    CTRL-B	- Scroll one page backward
+    <PageUp>	- Scroll one page backward
+    CTRL-Home	- Jump to the first entry
+    CTRL-End	- Jump to the last entry
+    <Up>	- Go up one entry
+    <Down>	- Go down one entry
+    <Enter>	- Open the selected file
+    <Esc>	- Close the popup menu
+    <CTRL-C>	- Close the popup menu
+
+Any other alphanumeric key will be used to narrow down the list of names
+displayed in the popup menu.
+
+To display only file names containing a pattern with |wildcards|, you can
+pass the pattern to the :Fileselect command:
+>
+    :Fileselect *.java
+<
+You can create a key mapping to toggle the file select popup menu. For
+example, to use <F2> to toggle the file select menu, add the following line
+to your .vimrc file:
+>
+    nmap <F2> <Plug>Fileselect_Toggle
+<
+==============================================================================
+
+vim:tw=78:ts=8:noet:ft=help:
