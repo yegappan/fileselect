@@ -151,7 +151,10 @@ func fileselect#showMenu(pat_arg) abort
   else
     let pat = '**/*'
   endif
+  let save_wildignore = &wildignore
+  set wildignore=*.o,*.obj,*.swp,*.bak,*.~
   let l = glob(pat, 0, 1)
+  let &wildignore = save_wildignore
   if empty(l)
     echohl Error | echo "No files found" | echohl None
     return
