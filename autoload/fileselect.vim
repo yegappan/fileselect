@@ -169,6 +169,7 @@ func fileselect#showMenu(pat_arg) abort
 
   " Save it for later use
   let s:popup_text = copy(s:filelist)
+  let s:filter_text = ''
 
   " Create the popup menu
   let lnum = &lines - &cmdheight - 2 - 10
@@ -193,6 +194,7 @@ func fileselect#showMenu(pat_arg) abort
   let items = copy(s:popup_text)
   call s:makeMenuName(items)
   call popup_settext(s:popup_winid, items)
+  echo 'File: '
 endfunc
 
 " Toggle (open or close) the fileselect popup menu
