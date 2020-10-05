@@ -91,7 +91,7 @@ def s:filterNames(id: number, key: string): number
   let update_popup: number = 0
   let key_handled: number = 0
 
-  if key == "\<BS>"
+  if key == "\<BS>" || key == "\<C-H>"
     # Erase one character from the filter text
     if s:filter_text->len() >= 1
       s:filter_text = s:filter_text[:-2]
@@ -109,8 +109,10 @@ def s:filterNames(id: number, key: string): number
         \ || key == "<PageDown>"
         \ || key == "<C-Home>"
         \ || key == "<C-End>"
+        || key == "\<C-N>"
+        || key == "\<C-P>"
     # scroll the popup window
-    let cmd: string = 'normal! ' .. key
+    let cmd: string = 'normal! ' .. (key == "\<C-N>" ? 'j' : key == "\<C-P>" : 'k' : key)
     cmd->win_execute(s:popup_winid)
     key_handled = 1
   elseif key == "\<Up>" || key == "\<Down>"
