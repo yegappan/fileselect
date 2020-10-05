@@ -215,7 +215,7 @@ def fileselect#showMenu(pat_arg: string)
 enddef
 
 # Toggle (open or close) the fileselect popup menu
-def fileselect#toggle()
+def fileselect#toggle(): string
   if s:popup_winid->popup_getoptions()->empty()
     # open the file select popup
     fileselect#showMenu('')
@@ -223,6 +223,7 @@ def fileselect#toggle()
     # popup window is present. close it.
     s:popup_winid->popup_close(-2)
   endif
+  return "\<Ignore>"
 enddef
 
 # restore 'cpo'
