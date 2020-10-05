@@ -27,8 +27,8 @@ set cpo&vim
 
 let s:filelist: list<string> = []
 let s:popup_text: list<string> = []
-let s:filter_text: string = ''
-let s:popup_winid: number = -1
+let s:filter_text = ''
+let s:popup_winid = -1
 
 # Edit the file selected from the popup menu
 def s:editFile(id: number, result: number)
@@ -39,8 +39,8 @@ def s:editFile(id: number, result: number)
   endif
   try
     # if the selected file is already present in a window, then jump to it
-    let fname: string = s:popup_text[result - 1]
-    let winList: list<number> = fname->bufnr()->win_findbuf()
+    let fname = s:popup_text[result - 1]
+    let winList = fname->bufnr()->win_findbuf()
     if winList->len() == 0
       # Not present in any window
       if &modified || &buftype != ''
@@ -61,7 +61,7 @@ enddef
 # Convert each file name in the items List into <filename> (<dirname>) format.
 # Make sure the popup does't occupy the entire screen by reducing the width.
 def s:makeMenuName(items: list<string>)
-  let maxwidth: number = s:popup_winid->popup_getpos().core_width
+  let maxwidth = s:popup_winid->popup_getpos().core_width
 
   let filename: string
   let dirname: string
@@ -88,8 +88,8 @@ enddef
 # Handle the keys typed in the popup menu.
 # Narrow down the displayed names based on the keys typed so far.
 def s:filterNames(id: number, key: string): number
-  let update_popup: number = 0
-  let key_handled: number = 0
+  let update_popup = 0
+  let key_handled = 0
 
   if key == "\<BS>"
     # Erase one character from the filter text
@@ -110,7 +110,7 @@ def s:filterNames(id: number, key: string): number
         \ || key == "<C-Home>"
         \ || key == "<C-End>"
     # scroll the popup window
-    let cmd: string = 'normal! ' .. key
+    let cmd = 'normal! ' .. key
     cmd->win_execute(s:popup_winid)
     key_handled = 1
   elseif key == "\<Up>" || key == "\<Down>"
@@ -127,9 +127,9 @@ def s:filterNames(id: number, key: string): number
     # Update the popup with the new list of file names
 
     # Keep the cursor at the current item
-    let prevSelName: string = ''
+    let prevSelName = ''
     if s:popup_text->len() > 0
-      let curLine: number = line('.', s:popup_winid)
+      let curLine = line('.', s:popup_winid)
       prevSelName = s:popup_text[curLine - 1]
     endif
 
@@ -138,15 +138,15 @@ def s:filterNames(id: number, key: string): number
     else
       s:popup_text = s:filelist
     endif
-    let items: list<string> = s:popup_text->copy()
+    let items = s:popup_text->copy()
     s:makeMenuName(items)
     id->popup_settext(items)
     echo 'File: ' .. s:filter_text
 
     # Select the previously selected entry. If not present, select first entry
-    let idx: number = s:popup_text->index(prevSelName)
+    let idx = s:popup_text->index(prevSelName)
     idx = idx == -1 ? 1 : idx + 1
-    let cmd: string = 'cursor(' .. idx .. ', 1)'
+    let cmd = 'cursor(' .. idx .. ', 1)'
     cmd->win_execute(s:popup_winid)
   endif
 
@@ -161,7 +161,7 @@ def fileselect#showMenu(pat_arg: string)
   # Get the list of file names to display.
 
   # Default pattern to get all the filenames in the current directory tree.
-  let pat: string = '**/*'
+  let pat = '**/*'
   if pat_arg != ''
     # use the user specified pattern
     pat = '**/*' .. pat_arg .. '*'
@@ -169,7 +169,7 @@ def fileselect#showMenu(pat_arg: string)
 
   let save_wildignore = &wildignore
   set wildignore=*.o,*.obj,*.swp,*.bak,*.~
-  let l: list<string> = pat->glob(0, 1)
+  let l = pat->glob(0, 1)
   &wildignore = save_wildignore
   if l->empty()
     echohl Error | echo "No files found" | echohl None
@@ -208,7 +208,7 @@ def fileselect#showMenu(pat_arg: string)
 
   # Populate the popup menu
   # Split the names into file name and directory path.
-  let items: list<string> = s:popup_text->copy()
+  let items = s:popup_text->copy()
   s:makeMenuName(items)
   s:popup_winid->popup_settext(items)
   echo 'File: '
