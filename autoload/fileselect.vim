@@ -211,7 +211,7 @@ def fileselect#showMenu(pat_arg: string)
   let items: list<string> = s:popup_text->copy()
   s:makeMenuName(items)
   s:popup_winid->popup_settext(items)
-  echo 'File: '
+  echo 'File: ' .. pat_arg
 enddef
 
 # Toggle (open or close) the fileselect popup menu
