@@ -100,11 +100,11 @@ def FilterNames(id: number, key: string): number
     update_popup = 1
     key_handled = 1
   elseif key == "\<C-F>"
-        \ || key == "\<C-B>"
-        \ || key == "<PageUp>"
-        \ || key == "<PageDown>"
-        \ || key == "<C-Home>"
-        \ || key == "<C-End>"
+        || key == "\<C-B>"
+        || key == "\<PageUp>"
+        || key == "\<PageDown>"
+        || key == "\<C-Home>"
+        || key == "\<C-End>"
     # scroll the popup window
     var cmd: string = 'normal! ' .. key
     cmd->win_execute(popup_winid)
