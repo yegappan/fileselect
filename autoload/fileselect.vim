@@ -207,7 +207,7 @@ def fileselect#showMenu(pat_arg: string)
   var items: list<string> = popup_text->copy()
   MakeMenuName(items)
   popup_winid->popup_settext(items)
-  echo 'File: '
+  echo 'File: ' .. pat_arg
 enddef
 
 # Toggle (open or close) the fileselect popup menu
