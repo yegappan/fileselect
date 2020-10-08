@@ -27,7 +27,7 @@ var s:filter_text: string = ''
 var s:popup_winid: number = -1
 
 # Edit the file selected from the popup menu
-def s:editFile(id: number, result: number)
+def EditFile(id: number, result: number)
   # clear the message displayed at the command-line
   echo ''
   if result <= 0
@@ -42,9 +42,9 @@ def s:editFile(id: number, result: number)
       if &modified || &buftype != ''
         # the current buffer is modified or is not a normal buffer, then open
         # the file in a new window
-        exe "split " .. s:popup_text[result - 1]
+        exe "split " .. popup_text[result - 1]
       else
-        exe "confirm edit " .. s:popup_text[result - 1]
+        exe "confirm edit " .. popup_text[result - 1]
       endif
     else
       winList[0]->win_gotoid()
@@ -56,8 +56,8 @@ enddef
 
 # Convert each file name in the items List into <filename> (<dirname>) format.
 # Make sure the popup does't occupy the entire screen by reducing the width.
-def s:makeMenuName(items: list<string>)
-  var maxwidth: number = s:popup_winid->popup_getpos().core_width
+def MakeMenuName(items: list<string>)
+  var maxwidth: number = popup_winid->popup_getpos().core_width
 
   var filename: string
   var dirname: string
@@ -83,20 +83,20 @@ enddef
 
 # Handle the keys typed in the popup menu.
 # Narrow down the displayed names based on the keys typed so far.
-def s:filterNames(id: number, key: string): number
+def FilterNames(id: number, key: string): number
   var update_popup: number = 0
   var key_handled: number = 0
 
   if key == "\<BS>"
     # Erase one character from the filter text
-    if s:filter_text->len() >= 1
-      s:filter_text = s:filter_text[:-2]
+    if filter_text->len() >= 1
+      filter_text = filter_text[:-2]
       update_popup = 1
     endif
     key_handled = 1
   elseif key == "\<C-U>"
     # clear the filter text
-    s:filter_text = ''
+    filter_text = ''
     update_popup = 1
     key_handled = 1
   elseif key == "\<C-F>"
@@ -107,14 +107,14 @@ def s:filterNames(id: number, key: string): number
         \ || key == "<C-End>"
     # scroll the popup window
     var cmd: string = 'normal! ' .. key
-    cmd->win_execute(s:popup_winid)
+    cmd->win_execute(popup_winid)
     key_handled = 1
   elseif key == "\<Up>" || key == "\<Down>"
     # Use native Vim handling for these keys
     key_handled = 0
   elseif key =~ '^\f$' || key == "\<Space>"
     # Filter the names based on the typed key and keys typed before
-    s:filter_text ..= key
+    filter_text ..= key
     update_popup = 1
     key_handled = 1
   endif
@@ -124,26 +124,26 @@ def s:filterNames(id: number, key: string): number
 
     # Keep the cursor at the current item
     var prevSelName: string = ''
-    if s:popup_text->len() > 0
-      var curLine: number = line('.', s:popup_winid)
-      prevSelName = s:popup_text[curLine - 1]
+    if popup_text->len() > 0
+      let curLine: number = line('.', popup_winid)
+      prevSelName = popup_text[curLine - 1]
     endif
 
-    if s:filter_text != ''
-      s:popup_text = s:filelist->matchfuzzy(s:filter_text)
+    if filter_text != ''
+      popup_text = filelist->matchfuzzy(filter_text)
     else
-      s:popup_text = s:filelist
+      popup_text = filelist
     endif
-    var items: list<string> = s:popup_text->copy()
-    s:makeMenuName(items)
+    var items: list<string> = popup_text->copy()
+    MakeMenuName(items)
     id->popup_settext(items)
-    echo 'File: ' .. s:filter_text
+    echo 'File: ' .. filter_text
 
     # Select the previously selected entry. If not present, select first entry
-    var idx: number = s:popup_text->index(prevSelName)
+    var idx: number = popup_text->index(prevSelName)
     idx = idx == -1 ? 1 : idx + 1
     var cmd: string = 'cursor(' .. idx .. ', 1)'
-    cmd->win_execute(s:popup_winid)
+    cmd->win_execute(popup_winid)
   endif
 
   if key_handled
@@ -177,11 +177,11 @@ def fileselect#showMenu(pat_arg: string)
 
   # Expand the file paths and reduce it relative to the home and current
   # directories
-  s:filelist = l->map('fnamemodify(v:val, ":p:~:.")')
+  filelist = l->map('fnamemodify(v:val, ":p:~:.")')
 
   # Save it for later use
-  s:popup_text = s:filelist->copy()
-  s:filter_text = ''
+  popup_text = filelist->copy()
+  filter_text = ''
 
   # Create the popup menu
   var lnum = &lines - &cmdheight - 2 - 10
@@ -197,27 +197,27 @@ def fileselect#showMenu(pat_arg: string)
       maxwidth: 60,
       fixed: 1,
       close: "button",
-      filter: function('s:filterNames'),
-      callback: function('s:editFile')
+      filter: FilterNames,
+      callback: EditFile
   }
-  s:popup_winid = popup_menu([], popupAttr)
+  popup_winid = popup_menu([], popupAttr)
 
   # Populate the popup menu
   # Split the names into file name and directory path.
-  var items: list<string> = s:popup_text->copy()
-  s:makeMenuName(items)
-  s:popup_winid->popup_settext(items)
+  var items: list<string> = popup_text->copy()
+  MakeMenuName(items)
+  popup_winid->popup_settext(items)
   echo 'File: '
 enddef
 
 # Toggle (open or close) the fileselect popup menu
 def fileselect#toggle()
-  if s:popup_winid->popup_getoptions()->empty()
+  if popup_winid->popup_getoptions()->empty()
     # open the file select popup
     fileselect#showMenu('')
   else
     # popup window is present. close it.
-    s:popup_winid->popup_close(-2)
+    popup_winid->popup_close(-2)
   endif
 enddef
 
