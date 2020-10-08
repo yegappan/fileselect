@@ -21,10 +21,6 @@ if v:version < 802 || !has('patch-8.2.1665')
   finish
 endif
 
-# Line continuation used here
-let s:cpo_save = &cpo
-set cpo&vim
-
 let s:filelist: list<string> = []
 let s:popup_text: list<string> = []
 let s:filter_text: string = ''
@@ -224,8 +220,5 @@ def fileselect#toggle()
     s:popup_winid->popup_close(-2)
   endif
 enddef
-
-# restore 'cpo'
-&cpo = s:cpo_save
 
 # vim: shiftwidth=2 sts=2 expandtab
