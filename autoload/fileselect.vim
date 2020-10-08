@@ -211,7 +211,7 @@ def fileselect#showMenu(pat_arg: string)
 enddef
 
 # Toggle (open or close) the fileselect popup menu
-def fileselect#toggle()
+def fileselect#toggle(): string
   if popup_winid->popup_getoptions()->empty()
     # open the file select popup
     fileselect#showMenu('')
@@ -219,6 +219,7 @@ def fileselect#toggle()
     # popup window is present. close it.
     popup_winid->popup_close(-2)
   endif
+  return "\<Ignore>"
 enddef
 
 # vim: shiftwidth=2 sts=2 expandtab
