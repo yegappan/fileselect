@@ -83,7 +83,7 @@ enddef
 
 # Handle the keys typed in the popup menu.
 # Narrow down the displayed names based on the keys typed so far.
-def FilterNames(id: number, key: string): number
+def s:filterNames(id: number, key: string): number
   var update_popup: number = 0
   var key_handled: number = 0
 
@@ -108,7 +108,7 @@ def FilterNames(id: number, key: string): number
         || key == "\<C-N>"
         || key == "\<C-P>"
     # scroll the popup window
-    var cmd: string = 'normal! ' .. (key == "\<C-N>" ? 'j' : key == "\<C-P>" : 'k' : key)
+    var cmd: string = 'normal! ' .. (key == "\<C-N>" ? 'j' : key == "\<C-P>" ? 'k' : key)
     cmd->win_execute(s:popup_winid)
     key_handled = 1
   elseif key == "\<Up>" || key == "\<Down>"
@@ -127,7 +127,7 @@ def FilterNames(id: number, key: string): number
     # Keep the cursor at the current item
     var prevSelName: string = ''
     if popup_text->len() > 0
-      let curLine: number = line('.', popup_winid)
+      var curLine: number = line('.', popup_winid)
       prevSelName = popup_text[curLine - 1]
     endif
 
@@ -199,7 +199,7 @@ def fileselect#showMenu(pat_arg: string)
       maxwidth: 60,
       fixed: 1,
       close: "button",
-      filter: FilterNames,
+      filter: function("s:filterNames"),
       callback: EditFile
   }
   popup_winid = popup_menu([], popupAttr)
