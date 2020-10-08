@@ -87,7 +87,7 @@ def FilterNames(id: number, key: string): number
   var update_popup: number = 0
   var key_handled: number = 0
 
-  if key == "\<BS>"
+  if key == "\<BS>" || key == "\<C-H>"
     # Erase one character from the filter text
     if filter_text->len() >= 1
       filter_text = filter_text[:-2]
@@ -105,9 +105,11 @@ def FilterNames(id: number, key: string): number
         || key == "\<PageDown>"
         || key == "\<C-Home>"
         || key == "\<C-End>"
+        || key == "\<C-N>"
+        || key == "\<C-P>"
     # scroll the popup window
-    var cmd: string = 'normal! ' .. key
-    cmd->win_execute(popup_winid)
+    var cmd: string = 'normal! ' .. (key == "\<C-N>" ? 'j' : key == "\<C-P>" : 'k' : key)
+    cmd->win_execute(s:popup_winid)
     key_handled = 1
   elseif key == "\<Up>" || key == "\<Down>"
     # Use native Vim handling for these keys
