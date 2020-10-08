@@ -173,11 +173,11 @@ def fileselect#showMenu(pat_arg: string)
   endif
 
   # Remove all the directory names
-  l->filter('!isdirectory(v:val)')
+  l->filter({_, v -> !isdirectory(v)})
 
   # Expand the file paths and reduce it relative to the home and current
   # directories
-  filelist = l->map('fnamemodify(v:val, ":p:~:.")')
+  filelist = l->map({_, v -> fnamemodify(v, ':p:~:.')})
 
   # Save it for later use
   popup_text = filelist->copy()
