@@ -27,7 +27,7 @@ var s:filter_text: string = ''
 var s:popup_winid: number = -1
 var s:pending_dirs: list<string> = []
 var s:refresh_timer_id: number = 0
-var s:ignore_filepat: string = '\%(^\..\+\)\|\%(^.\+\.o\)'
+var s:ignore_filepat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
 
 # Edit the file selected from the popup menu
 def EditFile(id: number, result: number)
@@ -87,7 +87,7 @@ enddef
 
 # Handle the keys typed in the popup menu.
 # Narrow down the displayed names based on the keys typed so far.
-def s:filterNames(id: number, key: string): number
+def FilterNames(id: number, key: string): number
   var update_popup: number = 0
   var key_handled: number = 0
 
@@ -95,7 +95,7 @@ def s:filterNames(id: number, key: string): number
   # timer.
   s:refresh_timer_id->timer_stop()
   if key != "\<Esc>"
-    s:refresh_timer_id = timer_start(1000, function('s:timerCallback'))
+    s:refresh_timer_id = timer_start(1000, TimerCallback)
   endif
 
   if key == "\<BS>" || key == "\<C-H>"
@@ -166,10 +166,10 @@ def s:filterNames(id: number, key: string): number
   return id->popup_filter_menu(key)
 enddef
 
-def s:updatePopup()
+def UpdatePopup()
   # Expand the file paths and reduce it relative to the home and current
   # directories
-  s:filelist = s:filelist->map('fnamemodify(v:val, ":p:~:.")')
+  s:filelist = s:filelist->map({_, v -> fnamemodify(v, ':p:~:.')})
 
   # Save it for later use
   if s:filter_text != ''
@@ -185,7 +185,7 @@ def s:updatePopup()
   s:popup_winid->popup_settext(items)
 enddef
 
-def s:processDir(dir_arg: string)
+def ProcessDir(dir_arg: string)
   var dirname: string = dir_arg
   if dirname == ''
     if s:pending_dirs->len() == 0
@@ -221,21 +221,21 @@ def s:processDir(dir_arg: string)
     return
   endif
 
-  s:updatePopup()
+  UpdatePopup()
   if s:pending_dirs->len() > 0
-    s:refresh_timer_id = timer_start(500, function('s:timerCallback'))
+    s:refresh_timer_id = timer_start(500, TimerCallback)
   endif
 enddef
 
-def s:timerCallback(timer_id: number)
-  s:processDir('')
+def TimerCallback(timer_id: number)
+  ProcessDir('')
 enddef
 
-def s:getFiles(pat_arg: string)
+def GetFiles(pat_arg: string)
   s:pending_dirs = []
   s:filelist = []
   s:filter_text = ''
-  s:processDir('.')
+  ProcessDir('.')
 enddef
 
 def fileselect#showMenu(pat_arg: string)
@@ -253,13 +253,13 @@ def fileselect#showMenu(pat_arg: string)
       maxwidth: 60,
       fixed: 1,
       close: "button",
-      filter: function("s:filterNames"),
+      filter: FilterNames,
       callback: EditFile
   }
   popup_winid = popup_menu([], popupAttr)
 
   # Get the list of file names to display.
-  s:getFiles(pat_arg)
+  GetFiles(pat_arg)
   if s:filelist->len() == 0
     return
   endif
