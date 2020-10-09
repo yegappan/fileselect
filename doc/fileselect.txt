@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 8.2 and above
-Last change: Sep 11, 2020
+Last change: Oct 8, 2020
 
 ==============================================================================
 CONTENTS~
@@ -19,7 +19,7 @@ CONTENTS~
 The File Selector plugin provides an easy method to select a file for editing
 from the current directory tree.
 
-This plugin needs Vim 8.2.1665 and above and will work on all the platforms
+This plugin needs Vim 8.2.1744 and above and will work on all the platforms
 where Vim is supported. This plugin will work in both terminal and GUI Vim.
 
 The Github repository for the File Selector plugin is available at:
@@ -86,7 +86,9 @@ In the popup menu, the following keys can be used:
     CTRL-Home	- Jump to the first entry
     CTRL-End	- Jump to the last entry
     <Up>	- Go up one entry
+    <C-P>	- idem
     <Down>	- Go down one entry
+    <C-N>	- idem
     <Enter>	- Open the selected file
     <Esc>	- Close the popup menu
     <CTRL-C>	- Close the popup menu

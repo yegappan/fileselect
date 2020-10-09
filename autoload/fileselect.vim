@@ -1,8 +1,8 @@
 vim9script
 # File: fileselect.vim
 # Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-# Version: 1.0
-# Last Modified: Sep 12, 2020
+# Version: 1.1
+# Last Modified: Oct 8, 2020
 #
 # Plugin to display a list of file names in a popup menu
 #
@@ -16,8 +16,8 @@ vim9script
 #
 # =========================================================================
 
-# Popup window support needs Vim 8.2.1665 and higher
-if v:version < 802 || !has('patch-8.2.1665')
+# Need Vim 8.2.1744 and higher
+if v:version < 802 || !has('patch-8.2.1744')
   finish
 endif
 
@@ -25,11 +25,15 @@ var s:filelist: list<string> = []
 var s:popup_text: list<string> = []
 var s:filter_text: string = ''
 var s:popup_winid: number = -1
+var s:pending_dirs: list<string> = []
+var s:refresh_timer_id: number = 0
+var s:ignore_filepat: string = '\%(^\..\+\)\|\%(^.\+\.o\)'
 
 # Edit the file selected from the popup menu
 def EditFile(id: number, result: number)
   # clear the message displayed at the command-line
   echo ''
+  s:refresh_timer_id->timer_stop()
   if result <= 0
     return
   endif
@@ -86,6 +90,13 @@ enddef
 def s:filterNames(id: number, key: string): number
   var update_popup: number = 0
   var key_handled: number = 0
+
+  # To respond to user key-presses in a timely fashion, restart the background
+  # timer.
+  s:refresh_timer_id->timer_stop()
+  if key != "\<Esc>"
+    s:refresh_timer_id = timer_start(1000, function('s:timerCallback'))
+  endif
 
   if key == "\<BS>" || key == "\<C-H>"
     # Erase one character from the filter text
@@ -155,36 +166,79 @@ def s:filterNames(id: number, key: string): number
   return id->popup_filter_menu(key)
 enddef
 
-def fileselect#showMenu(pat_arg: string)
-  # Get the list of file names to display.
+def s:updatePopup()
+  # Expand the file paths and reduce it relative to the home and current
+  # directories
+  s:filelist = s:filelist->map('fnamemodify(v:val, ":p:~:.")')
 
-  # Default pattern to get all the filenames in the current directory tree.
-  var pat: string = '**/*'
-  if pat_arg != ''
-    # use the user specified pattern
-    pat = '**/*' .. pat_arg .. '*'
+  # Save it for later use
+  if s:filter_text != ''
+    s:popup_text = s:filelist->matchfuzzy(s:filter_text)
+  else
+    s:popup_text = s:filelist->copy()
   endif
 
-  var save_wildignore = &wildignore
-  set wildignore=*.o,*.obj,*.swp,*.bak,*.~
-  var l: list<string> = pat->glob(0, 1)
-  &wildignore = save_wildignore
-  if l->empty()
+  # Populate the popup menu
+  # Split the names into file name and directory path.
+  var items: list<string> = s:popup_text->copy()
+  MakeMenuName(items)
+  s:popup_winid->popup_settext(items)
+enddef
+
+def s:processDir(dir_arg: string)
+  var dirname: string = dir_arg
+  if dirname == ''
+    if s:pending_dirs->len() == 0
+      return
+    endif
+    dirname = s:pending_dirs->remove(0)
+  endif
+
+  var start = reltime()
+  while true
+    var l = dirname->readdirex()
+    for f in l
+      if f.name =~ s:ignore_filepat
+        continue
+      endif
+      var filename = (dirname == '.') ? '' : dirname .. '/'
+      filename ..= f.name
+      if f.type == 'dir'
+        s:pending_dirs->add(filename)
+      else
+        s:filelist->add(filename)
+      endif
+    endfor
+    var elapsed = start->reltime()->reltimefloat()
+    if elapsed > 0.1 || s:pending_dirs->len() == 0
+      break
+    endif
+    dirname = s:pending_dirs->remove(0)
+  endwhile
+
+  if s:filelist->len() == 0
     echohl Error | echo "No files found" | echohl None
     return
   endif
 
-  # Remove all the directory names
-  l->filter({_, v -> !isdirectory(v)})
+  s:updatePopup()
+  if s:pending_dirs->len() > 0
+    s:refresh_timer_id = timer_start(500, function('s:timerCallback'))
+  endif
+enddef
 
-  # Expand the file paths and reduce it relative to the home and current
-  # directories
-  filelist = l->map({_, v -> fnamemodify(v, ':p:~:.')})
+def s:timerCallback(timer_id: number)
+  s:processDir('')
+enddef
 
-  # Save it for later use
-  popup_text = filelist->copy()
-  filter_text = ''
+def s:getFiles(pat_arg: string)
+  s:pending_dirs = []
+  s:filelist = []
+  s:filter_text = ''
+  s:processDir('.')
+enddef
 
+def fileselect#showMenu(pat_arg: string)
   # Create the popup menu
   var lnum = &lines - &cmdheight - 2 - 10
   var popupAttr = #{
@@ -204,11 +258,12 @@ def fileselect#showMenu(pat_arg: string)
   }
   popup_winid = popup_menu([], popupAttr)
 
-  # Populate the popup menu
-  # Split the names into file name and directory path.
-  var items: list<string> = popup_text->copy()
-  MakeMenuName(items)
-  popup_winid->popup_settext(items)
+  # Get the list of file names to display.
+  s:getFiles(pat_arg)
+  if s:filelist->len() == 0
+    return
+  endif
+
   echo 'File: ' .. pat_arg
 enddef
 
