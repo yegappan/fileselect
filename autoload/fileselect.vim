@@ -21,25 +21,25 @@ if v:version < 802 || !has('patch-8.2.1744')
   finish
 endif
 
-var s:filelist: list<string> = []
-var s:popup_text: list<string> = []
-var s:filter_text: string = ''
-var s:popup_winid: number = -1
-var s:pending_dirs: list<string> = []
-var s:refresh_timer_id: number = 0
-var s:ignore_filepat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
+var filelist: list<string> = []
+var popup_text: list<string> = []
+var filter_text: string = ''
+var popup_winid: number = -1
+var pending_dirs: list<string> = []
+var refresh_timer_id: number = 0
+var ignore_filepat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
 
 # Edit the file selected from the popup menu
 def EditFile(id: number, result: number)
   # clear the message displayed at the command-line
   echo ''
-  s:refresh_timer_id->timer_stop()
+  refresh_timer_id->timer_stop()
   if result <= 0
     return
   endif
   try
     # if the selected file is already present in a window, then jump to it
-    var fname: string = s:popup_text[result - 1]
+    var fname: string = popup_text[result - 1]
     var winList: list<number> = fname->bufnr()->win_findbuf()
     if winList->len() == 0
       # Not present in any window
@@ -93,9 +93,9 @@ def FilterNames(id: number, key: string): number
 
   # To respond to user key-presses in a timely fashion, restart the background
   # timer.
-  s:refresh_timer_id->timer_stop()
+  refresh_timer_id->timer_stop()
   if key != "\<Esc>"
-    s:refresh_timer_id = timer_start(1000, TimerCallback)
+    refresh_timer_id = timer_start(1000, TimerCallback)
   endif
 
   if key == "\<BS>" || key == "\<C-H>"
@@ -120,7 +120,7 @@ def FilterNames(id: number, key: string): number
         || key == "\<C-P>"
     # scroll the popup window
     var cmd: string = 'normal! ' .. (key == "\<C-N>" ? 'j' : key == "\<C-P>" ? 'k' : key)
-    cmd->win_execute(s:popup_winid)
+    cmd->win_execute(popup_winid)
     key_handled = 1
   elseif key == "\<Up>" || key == "\<Down>"
     # Use native Vim handling for these keys
@@ -142,14 +142,7 @@ def FilterNames(id: number, key: string): number
       prevSelName = popup_text[curLine - 1]
     endif
 
-    if filter_text != ''
-      popup_text = filelist->matchfuzzy(filter_text)
-    else
-      popup_text = filelist
-    endif
-    var items: list<string> = popup_text->copy()
-    MakeMenuName(items)
-    id->popup_settext(items)
+    UpdatePopup()
     echo 'File: ' .. filter_text
 
     # Select the previously selected entry. If not present, select first entry
@@ -167,63 +160,63 @@ def FilterNames(id: number, key: string): number
 enddef
 
 def UpdatePopup()
-  # Expand the file paths and reduce it relative to the home and current
-  # directories
-  s:filelist = s:filelist->map({_, v -> fnamemodify(v, ':p:~:.')})
-
   # Save it for later use
-  if s:filter_text != ''
-    s:popup_text = s:filelist->matchfuzzy(s:filter_text)
+  if filter_text != ''
+    popup_text = filelist->matchfuzzy(filter_text)
   else
-    s:popup_text = s:filelist->copy()
+    popup_text = filelist->copy()
   endif
 
   # Populate the popup menu
   # Split the names into file name and directory path.
-  var items: list<string> = s:popup_text->copy()
+  var items: list<string> = popup_text->copy()
   MakeMenuName(items)
-  s:popup_winid->popup_settext(items)
+  popup_winid->popup_settext(items)
 enddef
 
 def ProcessDir(dir_arg: string)
   var dirname: string = dir_arg
   if dirname == ''
-    if s:pending_dirs->len() == 0
+    if pending_dirs->len() == 0
       return
     endif
-    dirname = s:pending_dirs->remove(0)
+    dirname = pending_dirs->remove(0)
   endif
 
   var start = reltime()
   while true
     var l = dirname->readdirex()
     for f in l
-      if f.name =~ s:ignore_filepat
+      if f.name =~ ignore_filepat
         continue
       endif
       var filename = (dirname == '.') ? '' : dirname .. '/'
       filename ..= f.name
       if f.type == 'dir'
-        s:pending_dirs->add(filename)
+        pending_dirs->add(filename)
       else
-        s:filelist->add(filename)
+        filelist->add(filename)
       endif
     endfor
     var elapsed = start->reltime()->reltimefloat()
-    if elapsed > 0.1 || s:pending_dirs->len() == 0
+    if elapsed > 0.1 || pending_dirs->len() == 0
       break
     endif
-    dirname = s:pending_dirs->remove(0)
+    dirname = pending_dirs->remove(0)
   endwhile
 
-  if s:filelist->len() == 0
+  if filelist->len() == 0
     echohl Error | echo "No files found" | echohl None
     return
   endif
 
+  # Expand the file paths and reduce it relative to the home and current
+  # directories
+  filelist = filelist->map({_, v -> fnamemodify(v, ':p:~:.')})
+
   UpdatePopup()
-  if s:pending_dirs->len() > 0
-    s:refresh_timer_id = timer_start(500, TimerCallback)
+  if pending_dirs->len() > 0
+    refresh_timer_id = timer_start(500, TimerCallback)
   endif
 enddef
 
@@ -232,9 +225,9 @@ def TimerCallback(timer_id: number)
 enddef
 
 def GetFiles(pat_arg: string)
-  s:pending_dirs = []
-  s:filelist = []
-  s:filter_text = ''
+  pending_dirs = []
+  filelist = []
+  filter_text = ''
   ProcessDir('.')
 enddef
 
@@ -260,7 +253,7 @@ def fileselect#showMenu(pat_arg: string)
 
   # Get the list of file names to display.
   GetFiles(pat_arg)
-  if s:filelist->len() == 0
+  if filelist->len() == 0
     return
   endif
 
