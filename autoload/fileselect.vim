@@ -21,13 +21,21 @@ if v:version < 802 || !has('patch-8.2.1744')
   finish
 endif
 
-var fileList: list<string> = []
+var popupTitle: string = ''
+var popupID: number = -1
 var popupText: list<string> = []
+var fileList: list<string> = []
 var filterStr: string = ''
-var popupWinID: number = -1
 var dirQueue: list<string> = []
 var refreshTimer: number = 0
+# File names matching this pattern are ignored
 var ignoreFilePat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
+
+def Err(msg: string)
+  echohl Error
+  echo msg
+  echohl None
+enddef
 
 # Edit the file selected from the popup menu
 def EditFile(id: number, result: number)
@@ -61,7 +69,7 @@ enddef
 # Convert each file name in the items List into <filename> (<dirname>) format.
 # Make sure the popup does't occupy the entire screen by reducing the width.
 def MakeMenuName(items: list<string>)
-  var maxwidth: number = popupWinID->popup_getpos().core_width
+  var maxwidth: number = popupID->popup_getpos().core_width
 
   var filename: string
   var dirname: string
@@ -94,7 +102,7 @@ def FilterNames(id: number, key: string): number
   # To respond to user key-presses in a timely fashion, restart the background
   # timer.
   refreshTimer->timer_stop()
-  if key != "\<Esc>"
+  if key != "\<Esc>" && dirQueue->len() > 0
     refreshTimer = timer_start(1000, TimerCallback)
   endif
 
@@ -120,7 +128,7 @@ def FilterNames(id: number, key: string): number
         || key == "\<C-P>"
     # scroll the popup window
     var cmd: string = 'normal! ' .. (key == "\<C-N>" ? 'j' : key == "\<C-P>" ? 'k' : key)
-    cmd->win_execute(popupWinID)
+    cmd->win_execute(popupID)
     key_handled = 1
   elseif key == "\<Up>" || key == "\<Down>"
     # Use native Vim handling for these keys
@@ -138,18 +146,18 @@ def FilterNames(id: number, key: string): number
     # Keep the cursor at the current item
     var prevSelName: string = ''
     if popupText->len() > 0
-      var curLine: number = line('.', popupWinID)
+      var curLine: number = line('.', popupID)
       prevSelName = popupText[curLine - 1]
     endif
 
     UpdatePopup()
-    echo 'File: ' .. filterStr
+    echo 'Filter: ' .. filterStr
 
     # Select the previously selected entry. If not present, select first entry
     var idx: number = popupText->index(prevSelName)
     idx = idx == -1 ? 1 : idx + 1
     var cmd: string = 'cursor(' .. idx .. ', 1)'
-    cmd->win_execute(popupWinID)
+    cmd->win_execute(popupID)
   endif
 
   if key_handled
@@ -191,13 +199,14 @@ def UpdatePopup()
   else
     text = items->map({_, v -> #{text: v}})
   endif
-  popupWinID->popup_settext(text)
+  popupID->popup_settext(text)
 enddef
 
-def ProcessDir(dir_arg: string)
-  var dirname: string = dir_arg
+def ProcessDir(dir: string)
+  var dirname: string = dir
   if dirname == ''
     if dirQueue->len() == 0
+      popup_setoptions(popupID, #{title: popupTitle})
       return
     endif
     dirname = dirQueue->remove(0)
@@ -205,11 +214,25 @@ def ProcessDir(dir_arg: string)
 
   var start = reltime()
   while true
-    var l = dirname->readdirex()
+    var l: list<dict<any>>
+
+    # Due to a bug in Vim, exceptions from readdirex() cannot be caught.
+    # This is fixed by 8.2.1832.
+    l = dirname->readdirex()
+
+    if l->len() == 0
+      if dirQueue->len() == 0
+        break
+      endif
+      dirname = dirQueue->remove(0)
+      continue
+    endif
+
     for f in l
       if f.name =~ ignoreFilePat
         continue
       endif
+
       var filename = (dirname == '.') ? '' : dirname .. '/'
       filename ..= f.name
       if f.type == 'dir'
@@ -225,8 +248,8 @@ def ProcessDir(dir_arg: string)
     dirname = dirQueue->remove(0)
   endwhile
 
-  if fileList->len() == 0
-    echohl Error | echo "No files found" | echohl None
+  if dirQueue->len() == 0 && fileList->len() == 0
+    Err("No files found")
     return
   endif
 
@@ -237,25 +260,66 @@ def ProcessDir(dir_arg: string)
   UpdatePopup()
   if dirQueue->len() > 0
     refreshTimer = timer_start(500, TimerCallback)
+  else
+    popup_setoptions(popupID, #{title: popupTitle})
   endif
 enddef
 
+var signChars = ['―', '\', '|', '/']
+var signIdx = 0
+
+def GetNextSign(): string
+  var sign = signChars[signIdx]
+  signIdx += 1
+  if signIdx >= len(signChars)
+    signIdx = 0
+  endif
+  return sign
+enddef
+
 def TimerCallback(timer_id: number)
+  popup_setoptions(popupID,
+                   #{title: popupTitle .. ' [' .. GetNextSign() .. '] '})
   ProcessDir('')
 enddef
 
-def GetFiles(pat_arg: string)
+def GetFiles(start_dir: string)
   dirQueue = []
   fileList = []
   filterStr = ''
-  ProcessDir('.')
+  ProcessDir(start_dir)
 enddef
 
-def fileselect#showMenu(pat_arg: string)
+def fileselect#showMenu(dir_arg: string)
+  var start_dir = dir_arg
+  if dir_arg == ''
+    # default is current directory
+    start_dir = '.'
+  endif
+  # shorten the directory name relative to the current directory
+  start_dir = start_dir->fnamemodify(':p:.')
+  if start_dir[-1:] == '/'
+    # trim the / at the end of the name
+    start_dir = start_dir[:-2]
+  endif
+
+  # make sure a valid directory is specified
+  if start_dir->getftype() != 'dir'
+    Err("Error: Invalid directory " .. start_dir)
+    return
+  endif
+
+  # Use the directory name as the popup menu title
+  popupTitle = start_dir
+  if popupTitle->len() > 40
+    # trim the title and show the trailing characters
+    popupTitle = '...' .. popupTitle[-37:]
+  endif
+
   # Create the popup menu
   var lnum = &lines - &cmdheight - 2 - 10
   var popupAttr = #{
-      title: 'File Selector',
+      title: popupTitle,
       wrap: 0,
       pos: 'topleft',
       line: lnum,
@@ -269,27 +333,25 @@ def fileselect#showMenu(pat_arg: string)
       filter: FilterNames,
       callback: EditFile
   }
-  popupWinID = popup_menu([], popupAttr)
-  prop_type_add('fileselect', #{bufnr: winbufnr(popupWinID),
+  popupID = popup_menu([], popupAttr)
+  prop_type_add('fileselect', #{bufnr: popupID->winbufnr(),
                                 highlight: 'Title'})
 
   # Get the list of file names to display.
-  GetFiles(pat_arg)
+  GetFiles(start_dir)
   if fileList->len() == 0
     return
   endif
-
-  echo 'File: ' .. pat_arg
 enddef
 
 # Toggle (open or close) the fileselect popup menu
 def fileselect#toggle(): string
-  if popupWinID->popup_getoptions()->empty()
+  if popupID->popup_getoptions()->empty()
     # open the file select popup
     fileselect#showMenu('')
   else
     # popup window is present. close it.
-    popupWinID->popup_close(-2)
+    popupID->popup_close(-2)
   endif
   return "\<Ignore>"
 enddef

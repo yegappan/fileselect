@@ -1,7 +1,7 @@
 " File: fileselect.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 1.0
-" Last Modified: Sep 11, 2020
+" Version: 1.2
+" Last Modified: Oct 11, 2020
 "
 " Plugin to display a list of file names in a popup menu
 "
@@ -15,13 +15,13 @@
 "
 " =========================================================================
 
-" Popup window support needs Vim 8.2.1665 and higher
-if v:version < 802 || !has('patch-8.2.1665')
+" Need Vim 8.2.1744 and higher
+if v:version < 802 || !has('patch-8.2.1744')
   finish
 endif
 
 " User command to open the file select popup menu
-command! -nargs=* Fileselect call fileselect#showMenu(<q-args>)
+command! -nargs=* -complete=dir Fileselect call fileselect#showMenu(<q-args>)
 
 " key mapping to toggle the file select popup menu
 nnoremap <expr> <silent> <Plug>Fileselect_Toggle fileselect#toggle()

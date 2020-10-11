@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 8.2 and above
-Last change: Oct 8, 2020
+Last change: Oct 11, 2020
 
 ==============================================================================
 CONTENTS~
@@ -64,6 +64,8 @@ will move to that window.  If the file it not present in any of the windows,
 then the selected file will be opened in the current window.  You can use the
 up and down arrow keys to move the currently selected entry in the popup menu.
 
+You can also supply a directory as an argument to the :Fileselect command.
+
 In the popup menu, you can type a series of characters to narrow down the list
 of displayed file names. The characters entered so far are displayed in the
 command-line. You can press backspace to erase one character from the
@@ -72,10 +74,6 @@ names containing the series of typed characters. You can press <C-U> to erase
 filter text.
 
 You can close the popup menu by pressing the escape key or by pressing CTRL-C.
-
-In the popup menu, the complete directory path to a file is displayed in
-parenthesis after the file name. If this is too long, then the path is
-shortened and an abbreviated path is displayed.
 
 In the popup menu, the following keys can be used:
 
@@ -96,13 +94,9 @@ In the popup menu, the following keys can be used:
     <C-U>       - Erase the filter text
 
 Any other alphanumeric key will be used to narrow down the list of names
-displayed in the popup menu.
+displayed in the popup menu. When you type a filter string, then only the
+filenames fuzzy matching the string are displayed in the popup menu.
 
-To display only file names containing a pattern with |wildcards|, you can
-pass the pattern to the :Fileselect command:
->
-    :Fileselect *.java
-<
 You can create a key mapping to toggle the file select popup menu. For
 example, to use <F2> to toggle the file select menu, add the following line
 to your .vimrc file:
