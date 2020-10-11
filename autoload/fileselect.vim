@@ -279,7 +279,7 @@ enddef
 
 def TimerCallback(timer_id: number)
   popup_setoptions(popupID,
-                   #{title: popupTitle .. ' [' .. GetNextSign() .. '] '})
+                   #{title: popupTitle .. '[' .. GetNextSign() .. ']'})
   ProcessDir('')
 enddef
 
@@ -294,10 +294,11 @@ def fileselect#showMenu(dir_arg: string)
   var start_dir = dir_arg
   if dir_arg == ''
     # default is current directory
-    start_dir = '.'
+    start_dir = getcwd()
+  else
+    # shorten the directory name relative to the current directory
+    start_dir = start_dir->fnamemodify(':p:.')
   endif
-  # shorten the directory name relative to the current directory
-  start_dir = start_dir->fnamemodify(':p:.')
   if start_dir[-1:] == '/'
     # trim the / at the end of the name
     start_dir = start_dir[:-2]
@@ -310,10 +311,11 @@ def fileselect#showMenu(dir_arg: string)
   endif
 
   # Use the directory name as the popup menu title
-  popupTitle = start_dir
-  if popupTitle->len() > 40
+  if start_dir->len() <= 40
+    popupTitle = '[' .. start_dir .. ']'
+  else
     # trim the title and show the trailing characters
-    popupTitle = '...' .. popupTitle[-37:]
+    popupTitle = '[...' .. start_dir[-37:] .. ']'
   endif
 
   # Create the popup menu
