@@ -28,8 +28,16 @@ var fileList: list<string> = []
 var filterStr: string = ''
 var dirQueue: list<string> = []
 var refreshTimer: number = 0
-# File names matching this pattern are ignored
-var ignoreFilePat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
+# Ignore hidden files
+var ignoreFilePat: string = '\%(^\..\+\)'
+  # and any file matching 'wildignore'
+  .. (&wildignore != ''
+    ? '\|' .. &wildignore
+    # split before any comma which is not preceded by an odd number of backslashes
+    ->split('\%(\\\@<!\\\%(\\\\\)*\\\@!\)\@<!,')
+    # convert globs into regex
+    ->map('glob2regpat(v:val)')->join('\|')
+    : '')
 
 def Err(msg: string)
   echohl Error
