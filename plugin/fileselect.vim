@@ -16,7 +16,7 @@
 " =========================================================================
 
 " Need Vim 8.2.1744 and higher
-if v:version < 802 || !has('patch-8.2.1744')
+if v:version < 802 || !has('patch-8.2.2082')
   finish
 endif
 

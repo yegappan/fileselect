@@ -17,7 +17,7 @@ vim9script
 # =========================================================================
 
 # Need Vim 8.2.1744 and higher
-if v:version < 802 || !has('patch-8.2.1744')
+if v:version < 802 || !has('patch-8.2.2082')
   finish
 endif
 
@@ -191,13 +191,13 @@ def UpdatePopup()
   var text: list<dict<any>>
   if len(matchpos) > 0
     text = items
-       ->map({i, v -> #{
+       ->map({i, v -> {
          text: v,
          props: map(matchpos[i],
-                    {_, w -> #{col: w + 1, length: 1, type: 'fileselect'}})
+                    {_, w -> {col: w + 1, length: 1, type: 'fileselect'}})
        }})
   else
-    text = items->map({_, v -> #{text: v}})
+    text = items->map({_, v -> {text: v}})
   endif
   popupID->popup_settext(text)
 enddef
@@ -206,7 +206,7 @@ def ProcessDir(dir: string)
   var dirname: string = dir
   if dirname == ''
     if dirQueue->len() == 0
-      popup_setoptions(popupID, #{title: popupTitle})
+      popup_setoptions(popupID, {title: popupTitle})
       return
     endif
     dirname = dirQueue->remove(0)
@@ -261,7 +261,7 @@ def ProcessDir(dir: string)
   if dirQueue->len() > 0
     refreshTimer = timer_start(500, TimerCallback)
   else
-    popup_setoptions(popupID, #{title: popupTitle})
+    popup_setoptions(popupID, {title: popupTitle})
   endif
 enddef
 
@@ -279,7 +279,7 @@ enddef
 
 def TimerCallback(timer_id: number)
   popup_setoptions(popupID,
-                   #{title: popupTitle .. '[' .. GetNextSign() .. ']'})
+                   {title: popupTitle .. '[' .. GetNextSign() .. ']'})
   ProcessDir('')
 enddef
 
@@ -320,7 +320,7 @@ def fileselect#showMenu(dir_arg: string)
 
   # Create the popup menu
   var lnum = &lines - &cmdheight - 2 - 10
-  var popupAttr = #{
+  var popupAttr = {
       title: popupTitle,
       wrap: 0,
       pos: 'topleft',
@@ -336,8 +336,8 @@ def fileselect#showMenu(dir_arg: string)
       callback: EditFile
   }
   popupID = popup_menu([], popupAttr)
-  prop_type_add('fileselect', #{bufnr: popupID->winbufnr(),
-                                highlight: 'Title'})
+  prop_type_add('fileselect', {'bufnr': popupID->winbufnr(),
+                                'highlight': 'Title'})
 
   # Get the list of file names to display.
   GetFiles(start_dir)
