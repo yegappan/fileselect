@@ -32,7 +32,7 @@ var refreshTimer: number = 0
 var ignoreFilePat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
 
 def Err(msg: string)
-  echohl Error
+  echohl ErrorMsg
   echo msg
   echohl None
 enddef
