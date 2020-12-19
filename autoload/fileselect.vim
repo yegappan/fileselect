@@ -337,7 +337,7 @@ def fileselect#showMenu(dir_arg: string)
   }
   popupID = popup_menu([], popupAttr)
   prop_type_add('fileselect', {'bufnr': popupID->winbufnr(),
-                                'highlight': 'Title'})
+                                highlight: 'Title'})
 
   # Get the list of file names to display.
   GetFiles(start_dir)
@@ -348,7 +348,7 @@ enddef
 
 # Toggle (open or close) the fileselect popup menu
 def fileselect#toggle(): string
-  if popupID->popup_getoptions()->empty()
+  if popupID->win_gettype() == 'popup'
     # open the file select popup
     fileselect#showMenu('')
   else
