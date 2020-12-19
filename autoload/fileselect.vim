@@ -218,7 +218,11 @@ def ProcessDir(dir: string)
 
     # Due to a bug in Vim, exceptions from readdirex() cannot be caught.
     # This is fixed by 8.2.1832.
-    l = dirname->readdirex()
+    try
+      l = dirname->readdirex()
+    catch
+      # ignore exceptions in reading directories
+    endtry
 
     if l->len() == 0
       if dirQueue->len() == 0
