@@ -2,7 +2,7 @@ vim9script
 # File: fileselect.vim
 # Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 # Version: 1.2
-# Last Modified: Oct 10, 2020
+# Last Modified: Dec 30, 2020
 #
 # Plugin to display a list of file names in a popup menu.
 #
@@ -31,14 +31,14 @@ var refreshTimer: number = 0
 # File names matching this pattern are ignored
 var ignoreFilePat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
 
-def Err(msg: string)
+def Err(msg: string): void
   echohl ErrorMsg
   echo msg
   echohl None
 enddef
 
 # Edit the file selected from the popup menu
-def EditFile(id: number, result: number)
+def EditFile(id: number, result: number): void
   # clear the message displayed at the command-line
   echo ''
   refreshTimer->timer_stop()
@@ -68,7 +68,7 @@ enddef
 
 # Convert each file name in the items List into <filename> (<dirname>) format.
 # Make sure the popup does't occupy the entire screen by reducing the width.
-def MakeMenuName(items: list<string>)
+def MakeMenuName(items: list<string>): void
   var maxwidth: number = popupID->popup_getpos().core_width
 
   var filename: string
@@ -95,7 +95,7 @@ enddef
 
 # Handle the keys typed in the popup menu.
 # Narrow down the displayed names based on the keys typed so far.
-def FilterNames(id: number, key: string): number
+def FilterNames(id: number, key: string): bool
   var update_popup: number = 0
   var key_handled: number = 0
 
@@ -161,7 +161,7 @@ def FilterNames(id: number, key: string): number
   endif
 
   if key_handled
-    return 1
+    return v:true
   endif
 
   return id->popup_filter_menu(key)
@@ -169,10 +169,10 @@ enddef
 
 # Update the popup menu with a list of filenames. If the user entered a filter
 # string, then fuzzy match and display only the matching filenames.
-def UpdatePopup()
+def UpdatePopup(): void
   var matchpos: list<list<number>> = []
   if filterStr != ''
-    var matches: list<any> = fileList->matchfuzzypos(filterStr)
+    var matches: list<list<any>> = fileList->matchfuzzypos(filterStr)
     popupText = matches[0]
     matchpos = matches[1]
   else
@@ -202,7 +202,7 @@ def UpdatePopup()
   popupID->popup_settext(text)
 enddef
 
-def ProcessDir(dir: string)
+def ProcessDir(dir: string): void
   var dirname: string = dir
   if dirname == ''
     if dirQueue->len() == 0
@@ -281,20 +281,20 @@ def GetNextSign(): string
   return sign
 enddef
 
-def TimerCallback(timer_id: number)
+def TimerCallback(timer_id: number): void
   popup_setoptions(popupID,
                    {title: popupTitle .. '[' .. GetNextSign() .. ']'})
   ProcessDir('')
 enddef
 
-def GetFiles(start_dir: string)
+def GetFiles(start_dir: string): void
   dirQueue = []
   fileList = []
   filterStr = ''
   ProcessDir(start_dir)
 enddef
 
-def fileselect#showMenu(dir_arg: string)
+def fileselect#showMenu(dir_arg: string): void
   var start_dir = dir_arg
   if dir_arg == ''
     # default is current directory
