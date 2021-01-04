@@ -27,7 +27,7 @@ var popupText: list<string> = []
 var fileList: list<string> = []
 var filterStr: string = ''
 var dirQueue: list<string> = []
-var refreshTimer: number = 0
+var refreshTimerID: number = 0
 # File names matching this pattern are ignored
 var ignoreFilePat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
 
@@ -41,7 +41,7 @@ enddef
 def EditFile(id: number, result: number): void
   # clear the message displayed at the command-line
   echo ''
-  refreshTimer->timer_stop()
+  refreshTimerID->timer_stop()
   if result <= 0
     return
   endif
@@ -49,7 +49,7 @@ def EditFile(id: number, result: number): void
     # if the selected file is already present in a window, then jump to it
     var fname: string = popupText[result - 1]
     var winList: list<number> = fname->bufnr()->win_findbuf()
-    if winList->len() == 0
+    if winList->empty()
       # Not present in any window
       if &modified || &buftype != ''
         # the current buffer is modified or is not a normal buffer, then open
@@ -83,7 +83,7 @@ def MakeMenuName(items: list<string>): void
       # keep the full file name and reduce directory name length
       # keep some characters at the beginning and end (equally).
       # 6 spaces are used for "..." and " ()"
-      var dirsz = (maxwidth - flen - 6) / 2
+      var dirsz: number = (maxwidth - flen - 6) / 2
       dirname = dirname[: dirsz] .. '...' .. dirname[-dirsz :]
     endif
     items[i] = filename
@@ -96,28 +96,28 @@ enddef
 # Handle the keys typed in the popup menu.
 # Narrow down the displayed names based on the keys typed so far.
 def FilterNames(id: number, key: string): bool
-  var update_popup: number = 0
-  var key_handled: number = 0
+  var update_popup: bool = false
+  var key_handled: bool = false
 
   # To respond to user key-presses in a timely fashion, restart the background
   # timer.
-  refreshTimer->timer_stop()
+  refreshTimerID->timer_stop()
   if key != "\<Esc>" && dirQueue->len() > 0
-    refreshTimer = timer_start(1000, TimerCallback)
+    refreshTimerID = timer_start(1000, TimerCallback)
   endif
 
   if key == "\<BS>" || key == "\<C-H>"
     # Erase one character from the filter text
     if filterStr->len() >= 1
       filterStr = filterStr[: -2]
-      update_popup = 1
+      update_popup = true
     endif
-    key_handled = 1
+    key_handled = true
   elseif key == "\<C-U>"
     # clear the filter text
     filterStr = ''
-    update_popup = 1
-    key_handled = 1
+    update_popup = true
+    key_handled = true
   elseif key == "\<C-F>"
         || key == "\<C-B>"
         || key == "\<PageUp>"
@@ -129,15 +129,15 @@ def FilterNames(id: number, key: string): bool
     # scroll the popup window
     var cmd: string = 'normal! ' .. (key == "\<C-N>" ? 'j' : key == "\<C-P>" ? 'k' : key)
     cmd->win_execute(popupID)
-    key_handled = 1
+    key_handled = true
   elseif key == "\<Up>" || key == "\<Down>"
     # Use native Vim handling for these keys
-    key_handled = 0
+    key_handled = false
   elseif key =~ '^\f$' || key == "\<Space>"
     # Filter the names based on the typed key and keys typed before
     filterStr ..= key
-    update_popup = 1
-    key_handled = 1
+    update_popup = true
+    key_handled = true
   endif
 
   if update_popup
@@ -205,14 +205,14 @@ enddef
 def ProcessDir(dir: string): void
   var dirname: string = dir
   if dirname == ''
-    if dirQueue->len() == 0
+    if dirQueue->empty()
       popup_setoptions(popupID, {title: popupTitle})
       return
     endif
     dirname = dirQueue->remove(0)
   endif
 
-  var start = reltime()
+  var start: list<any> = reltime()
   while true
     var l: list<dict<any>>
 
@@ -224,8 +224,8 @@ def ProcessDir(dir: string): void
       # ignore exceptions in reading directories
     endtry
 
-    if l->len() == 0
-      if dirQueue->len() == 0
+    if l->empty()
+      if dirQueue->empty()
         break
       endif
       dirname = dirQueue->remove(0)
@@ -237,7 +237,7 @@ def ProcessDir(dir: string): void
         continue
       endif
 
-      var filename = (dirname == '.') ? '' : dirname .. '/'
+      var filename: string = (dirname == '.') ? '' : dirname .. '/'
       filename ..= f.name
       if f.type == 'dir'
         dirQueue->add(filename)
@@ -245,14 +245,14 @@ def ProcessDir(dir: string): void
         fileList->add(filename)
       endif
     endfor
-    var elapsed = start->reltime()->reltimefloat()
-    if elapsed > 0.1 || dirQueue->len() == 0
+    var elapsed: float = start->reltime()->reltimefloat()
+    if elapsed > 0.1 || dirQueue->empty()
       break
     endif
     dirname = dirQueue->remove(0)
   endwhile
 
-  if dirQueue->len() == 0 && fileList->len() == 0
+  if dirQueue->empty() && fileList->empty()
     Err('No files found')
     return
   endif
@@ -263,17 +263,17 @@ def ProcessDir(dir: string): void
 
   UpdatePopup()
   if dirQueue->len() > 0
-    refreshTimer = timer_start(500, TimerCallback)
+    refreshTimerID = timer_start(500, TimerCallback)
   else
     popup_setoptions(popupID, {title: popupTitle})
   endif
 enddef
 
-var signChars = ['―', '\', '|', '/']
-var signIdx = 0
+var signChars: list<string> = ['―', '\', '|', '/']
+var signIdx: number = 0
 
 def GetNextSign(): string
-  var sign = signChars[signIdx]
+  var sign: string = signChars[signIdx]
   signIdx += 1
   if signIdx >= len(signChars)
     signIdx = 0
@@ -295,7 +295,7 @@ def GetFiles(start_dir: string): void
 enddef
 
 def fileselect#showMenu(dir_arg: string): void
-  var start_dir = dir_arg
+  var start_dir: string = dir_arg
   if dir_arg == ''
     # default is current directory
     start_dir = getcwd()
@@ -323,8 +323,8 @@ def fileselect#showMenu(dir_arg: string): void
   endif
 
   # Create the popup menu
-  var lnum = &lines - &cmdheight - 2 - 10
-  var popupAttr = {
+  var lnum: number = &lines - &cmdheight - 2 - 10
+  var popupAttr: dict<any> = {
       title: popupTitle,
       wrap: 0,
       pos: 'topleft',
@@ -345,7 +345,7 @@ def fileselect#showMenu(dir_arg: string): void
 
   # Get the list of file names to display.
   GetFiles(start_dir)
-  if fileList->len() == 0
+  if fileList->empty()
     return
   endif
 enddef
