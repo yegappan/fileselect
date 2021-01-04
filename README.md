@@ -23,3 +23,6 @@ You can close the popup menu by pressing the escape key or by pressing CTRL-C.
 In the popup menu, the complete directory path to a file is displayed in
 parenthesis after the file name. If this is too long, then the path is
 shortened and an abbreviated path is displayed.
+
+## Screenshot:
+<img alt="gif" src="https://user-images.githubusercontent.com/8505073/103449956-c56a5500-4caf-11eb-8570-8ad1a102c9fa.gif" />
