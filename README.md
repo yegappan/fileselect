@@ -2,7 +2,7 @@
 The File Selector plugin provides an easy access to edit a file from
 the current directory tree.
 
-This plugin needs Vim 8.2.1665 and above and will work on all the platforms
+This plugin needs Vim 8.2.2261 and above and will work on all the platforms
 where Vim is supported. This plugin will work in both console and GUI Vim.
 
 The command :Fileselect opens a popup menu with a list of file names from the

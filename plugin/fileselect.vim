@@ -1,7 +1,7 @@
 " File: fileselect.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 1.2
-" Last Modified: Oct 11, 2020
+" Last Modified: Jan 4, 2021
 "
 " Plugin to display a list of file names in a popup menu
 "
@@ -15,8 +15,8 @@
 "
 " =========================================================================
 
-" Need Vim 8.2.2082 and higher
-if v:version < 802 || !has('patch-8.2.2082')
+" Need Vim 8.2.2261 and higher
+if v:version < 802 || !has('patch-8.2.2261')
   finish
 endif
 
