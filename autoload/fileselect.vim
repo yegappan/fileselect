@@ -54,9 +54,9 @@ def EditFile(id: number, result: number): void
       if &modified || &buftype != ''
         # the current buffer is modified or is not a normal buffer, then open
         # the file in a new window
-        exe "split " .. popupText[result - 1]
+        exe 'split ' .. popupText[result - 1]
       else
-        exe "confirm edit " .. popupText[result - 1]
+        exe 'confirm edit ' .. popupText[result - 1]
       endif
     else
       winList[0]->win_gotoid()
@@ -84,7 +84,7 @@ def MakeMenuName(items: list<string>): void
       # keep some characters at the beginning and end (equally).
       # 6 spaces are used for "..." and " ()"
       var dirsz = (maxwidth - flen - 6) / 2
-      dirname = dirname[:dirsz] .. '...' .. dirname[-dirsz:]
+      dirname = dirname[: dirsz] .. '...' .. dirname[-dirsz :]
     endif
     items[i] = filename
     if dirname != '.'
@@ -109,7 +109,7 @@ def FilterNames(id: number, key: string): bool
   if key == "\<BS>" || key == "\<C-H>"
     # Erase one character from the filter text
     if filterStr->len() >= 1
-      filterStr = filterStr[:-2]
+      filterStr = filterStr[: -2]
       update_popup = 1
     endif
     key_handled = 1
@@ -161,7 +161,7 @@ def FilterNames(id: number, key: string): bool
   endif
 
   if key_handled
-    return v:true
+    return true
   endif
 
   return id->popup_filter_menu(key)
@@ -191,13 +191,13 @@ def UpdatePopup(): void
   var text: list<dict<any>>
   if len(matchpos) > 0
     text = items
-       ->map({i, v -> {
+       ->map((i: number, v: string): dict<any> => ({
          text: v,
          props: map(matchpos[i],
-                    {_, w -> {col: w + 1, length: 1, type: 'fileselect'}})
-       }})
+                    (_, w: number): dict<any> => ({col: w + 1, length: 1, type: 'fileselect'}))
+       }))
   else
-    text = items->map({_, v -> {text: v}})
+    text = items->map((_, v: string): dict<string> => ({text: v}))
   endif
   popupID->popup_settext(text)
 enddef
@@ -253,13 +253,13 @@ def ProcessDir(dir: string): void
   endwhile
 
   if dirQueue->len() == 0 && fileList->len() == 0
-    Err("No files found")
+    Err('No files found')
     return
   endif
 
   # Expand the file paths and reduce it relative to the home and current
   # directories
-  fileList = fileList->map({_, v -> fnamemodify(v, ':p:~:.')})
+  fileList = fileList->map((_, v: string): string => fnamemodify(v, ':p:~:.'))
 
   UpdatePopup()
   if dirQueue->len() > 0
@@ -303,14 +303,14 @@ def fileselect#showMenu(dir_arg: string): void
     # shorten the directory name relative to the current directory
     start_dir = start_dir->fnamemodify(':p:.')
   endif
-  if start_dir[-1:] == '/'
+  if start_dir[-1 :] == '/'
     # trim the / at the end of the name
-    start_dir = start_dir[:-2]
+    start_dir = start_dir[: -2]
   endif
 
   # make sure a valid directory is specified
   if start_dir->getftype() != 'dir'
-    Err("Error: Invalid directory " .. start_dir)
+    Err('Error: Invalid directory ' .. start_dir)
     return
   endif
 
@@ -319,7 +319,7 @@ def fileselect#showMenu(dir_arg: string): void
     popupTitle = '[' .. start_dir .. ']'
   else
     # trim the title and show the trailing characters
-    popupTitle = '[...' .. start_dir[-37:] .. ']'
+    popupTitle = '[...' .. start_dir[-37 :] .. ']'
   endif
 
   # Create the popup menu
@@ -335,13 +335,13 @@ def fileselect#showMenu(dir_arg: string): void
       maxheight: 10,
       maxwidth: 60,
       fixed: 1,
-      close: "button",
+      close: 'button',
       filter: FilterNames,
       callback: EditFile
   }
   popupID = popup_menu([], popupAttr)
-  prop_type_add('fileselect', {'bufnr': popupID->winbufnr(),
-                                highlight: 'Title'})
+  prop_type_add('fileselect', {bufnr: popupID->winbufnr(),
+                               highlight: 'Title'})
 
   # Get the list of file names to display.
   GetFiles(start_dir)
