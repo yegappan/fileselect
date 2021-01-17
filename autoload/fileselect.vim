@@ -103,7 +103,7 @@ def FilterNames(id: number, key: string): bool
   # timer.
   refreshTimerID->timer_stop()
   if key != "\<Esc>" && dirQueue->len() > 0
-    refreshTimerID = timer_start(1000, TimerCallback)
+    refreshTimerID = timer_start(1'000, TimerCallback)
   endif
 
   if key == "\<BS>" || key == "\<C-H>"
@@ -191,13 +191,13 @@ def UpdatePopup(): void
   var text: list<dict<any>>
   if len(matchpos) > 0
     text = items
-       ->map((i: number, v: string): dict<any> => ({
+       ->mapnew((i: number, v: string): dict<any> => ({
          text: v,
-         props: map(matchpos[i],
+         props: mapnew(matchpos[i],
                     (_, w: number): dict<any> => ({col: w + 1, length: 1, type: 'fileselect'}))
        }))
   else
-    text = items->map((_, v: string): dict<string> => ({text: v}))
+    text = items->mapnew((_, v: string): dict<string> => ({text: v}))
   endif
   popupID->popup_settext(text)
 enddef
