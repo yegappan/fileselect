@@ -29,7 +29,7 @@ var filterStr: string = ''
 var dirQueue: list<string> = []
 var refreshTimerID: number = 0
 # File names matching this pattern are ignored
-var ignoreFilePat: string = '\%(^\..\+\)\|\%(^.\+\.o\)\|\%(^.\+\.obj\)'
+var ignoreFilePat: string = '\v%(^\..+)|%(^.+\.o)|%(^.+\.obj)'
 
 def Err(msg: string): void
   echohl ErrorMsg
