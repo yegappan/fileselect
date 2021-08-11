@@ -21,7 +21,7 @@ if v:version < 802 || !has('patch-8.2.2261')
 endif
 
 " User command to open the file select popup menu
-command! -nargs=* -complete=dir Fileselect call fileselect#showMenu(<q-args>)
+command! -nargs=* -complete=dir Fileselect call fileselect#showMenu(<q-args>, <q-mods>)
 
 " key mapping to toggle the file select popup menu
 nnoremap <expr> <silent> <Plug>Fileselect_Toggle fileselect#toggle()
