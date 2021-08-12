@@ -2,7 +2,7 @@ vim9script
 # File: fileselect.vim
 # Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 # Version: 1.2
-# Last Modified: Jan 4, 2021
+# Last Modified: August 11, 2021
 #
 # Plugin to display a list of file names in a popup menu.
 #
@@ -56,7 +56,13 @@ def EditFile(id: number, result: number, mods: string): void
         # the file in a new window
         exe mods 'split ' .. popupText[result - 1]
       else
-        exe 'confirm' mods 'edit ' .. popupText[result - 1]
+        var editcmd: string = 'confirm '
+        if mods != ''
+          editcmd ..=  mods .. ' split '
+        else
+          editcmd ..= 'edit '
+        endif
+        exe editcmd .. popupText[result - 1]
       endif
     else
       winList[0]->win_gotoid()
