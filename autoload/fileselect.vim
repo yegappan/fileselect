@@ -38,7 +38,7 @@ def Err(msg: string): void
 enddef
 
 # Edit the file selected from the popup menu
-def EditFile(id: number, result: number): void
+def EditFile(id: number, result: number, mods: string): void
   # clear the message displayed at the command-line
   echo ''
   refreshTimerID->timer_stop()
@@ -54,9 +54,9 @@ def EditFile(id: number, result: number): void
       if &modified || &buftype != ''
         # the current buffer is modified or is not a normal buffer, then open
         # the file in a new window
-        exe 'split ' .. popupText[result - 1]
+        exe mods 'split ' .. popupText[result - 1]
       else
-        exe 'confirm edit ' .. popupText[result - 1]
+        exe 'confirm' mods 'edit ' .. popupText[result - 1]
       endif
     else
       winList[0]->win_gotoid()
@@ -294,7 +294,7 @@ def GetFiles(start_dir: string): void
   ProcessDir(start_dir)
 enddef
 
-def fileselect#showMenu(dir_arg: string): void
+def fileselect#showMenu(dir_arg: string, mods: string): void
   var start_dir: string = dir_arg
   if dir_arg == ''
     # default is current directory
@@ -337,7 +337,7 @@ def fileselect#showMenu(dir_arg: string): void
       fixed: 1,
       close: 'button',
       filter: FilterNames,
-      callback: EditFile
+      callback: (id, result) => EditFile(id, result, mods)
   }
   popupID = popup_menu([], popupAttr)
   prop_type_add('fileselect', {bufnr: popupID->winbufnr(),
