@@ -300,7 +300,7 @@ def GetFiles(start_dir: string): void
   ProcessDir(start_dir)
 enddef
 
-def fileselect#showMenu(dir_arg: string, mods: string): void
+export def FileSelectShowMenu(dir_arg: string, mods: string): void
   var start_dir: string = dir_arg
   if dir_arg == ''
     # default is current directory
@@ -340,6 +340,7 @@ def fileselect#showMenu(dir_arg: string, mods: string): void
       minheight: 10,
       maxheight: 10,
       maxwidth: 60,
+      mapping: 1,
       fixed: 1,
       close: 'button',
       filter: FilterNames,
@@ -357,10 +358,10 @@ def fileselect#showMenu(dir_arg: string, mods: string): void
 enddef
 
 # Toggle (open or close) the fileselect popup menu
-def fileselect#toggle(): string
-  if popupID->win_gettype() == 'popup'
+export def FileSelectToggle(): string
+  if popupID->win_gettype() != 'popup'
     # open the file select popup
-    fileselect#showMenu('')
+    s:FileSelectShowMenu('', '')
   else
     # popup window is present. close it.
     popupID->popup_close(-2)

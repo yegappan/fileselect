@@ -102,7 +102,7 @@ You can create a key mapping to toggle the file select popup menu. For
 example, to use <F2> to toggle the file select menu, add the following line
 to your .vimrc file:
 >
-    nmap <F2> <Plug>Fileselect_Toggle
+    nmap <F2> <Plug>(FileselectToggle)
 <
 ==============================================================================
 
