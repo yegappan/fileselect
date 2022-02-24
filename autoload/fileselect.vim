@@ -361,7 +361,7 @@ enddef
 export def FileSelectToggle(): string
   if popupID->win_gettype() != 'popup'
     # open the file select popup
-    s:FileSelectShowMenu('', '')
+    FileSelectShowMenu('', '')
   else
     # popup window is present. close it.
     popupID->popup_close(-2)
