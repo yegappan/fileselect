@@ -1,3 +1,8 @@
+if !has('patch-8.2.2261')
+  finish
+endif
+" Need Vim 8.2.2261 and higher
+
 vim9script
 
 # File: fileselect.vim
@@ -16,11 +21,6 @@ vim9script
 #            of this software.
 #
 # =========================================================================
-
-# Need Vim 8.2.2261 and higher
-if !has('patch-8.2.2261')
-  finish
-endif
 
 var fs = {}
 if has('patch-8.2.4257')
